@@ -2,7 +2,8 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
   Activity, Syringe, AlertTriangle, Building2, FileText, Package,
-  Bell, BarChart3, Warehouse, Brain, TrendingUp, Shield, MapPin, Stethoscope
+  Bell, BarChart3, Warehouse, Brain, TrendingUp, Shield, MapPin, Stethoscope,
+  Pill, Clock, Users
 } from 'lucide-react';
 import api from '../services/api';
 
@@ -87,6 +88,62 @@ const features = [
     color: 'pink',
     path: '/ai-analysis',
   },
+  {
+    id: 'predict-disease',
+    title: 'Disease Prediction',
+    description: 'Structured AI disease prediction with probability scores',
+    icon: Stethoscope,
+    color: 'blue',
+    path: '/predict-disease',
+  },
+  {
+    id: 'risk-factors',
+    title: 'Risk Factor Analysis',
+    description: 'Personalized disease risk profile from demographics',
+    icon: Shield,
+    color: 'teal',
+    path: '/risk-factors',
+  },
+  {
+    id: 'drug-interactions',
+    title: 'Drug Interactions',
+    description: 'AI-powered drug interaction checker with severity levels',
+    icon: Pill,
+    color: 'red',
+    path: '/drug-interactions',
+  },
+  {
+    id: 'differential',
+    title: 'Differential Diagnosis',
+    description: 'Ranked differential with diagnostic workup plan',
+    icon: Brain,
+    color: 'purple',
+    path: '/differential-diagnosis',
+  },
+  {
+    id: 'population',
+    title: 'Population Analytics',
+    description: 'Disease prevalence and demographic breakdowns',
+    icon: Users,
+    color: 'indigo',
+    path: '/population-analytics',
+  },
+  {
+    id: 'patient-history',
+    title: 'Patient History',
+    description: 'Patient AI prediction history timeline view',
+    icon: Clock,
+    color: 'cyan',
+    path: '/patient-history',
+  },
+  {
+    id: 'ai-history',
+    title: 'AI History',
+    description: 'Paginated history of all AI forecasts and analyses',
+    icon: BarChart3,
+    color: 'orange',
+    path: '/ai-history',
+  },
 ];
 
 const colorMap = {
@@ -100,6 +157,7 @@ const colorMap = {
   teal: 'from-teal-500 to-teal-600 shadow-teal-200',
   cyan: 'from-cyan-500 to-cyan-600 shadow-cyan-200',
   pink: 'from-pink-500 to-pink-600 shadow-pink-200',
+  violet: 'from-violet-500 to-violet-600 shadow-violet-200',
 };
 
 const bgColorMap = {
@@ -113,6 +171,7 @@ const bgColorMap = {
   teal: 'bg-teal-50 border-teal-200 hover:border-teal-300',
   cyan: 'bg-cyan-50 border-cyan-200 hover:border-cyan-300',
   pink: 'bg-pink-50 border-pink-200 hover:border-pink-300',
+  violet: 'bg-violet-50 border-violet-200 hover:border-violet-300',
 };
 
 export default function Dashboard() {

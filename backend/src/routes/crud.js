@@ -4,11 +4,24 @@ import pool from '../db.js';
 export function createCrudRouter(tableName, columns) {
   const router = Router();
 
-  // GET all
+  // GET all (paginated if page param present)
   router.get('/', async (req, res) => {
     try {
-      const result = await pool.query(`SELECT * FROM ${tableName} ORDER BY created_at DESC`);
-      res.json(result.rows);
+      const page = parseInt(req.query.page) || null;
+      const limit = parseInt(req.query.limit) || 20;
+
+      if (page) {
+        const offset = (page - 1) * limit;
+        const [rows, count] = await Promise.all([
+          pool.query(`SELECT * FROM ${tableName} ORDER BY created_at DESC LIMIT $1 OFFSET $2`, [limit, offset]),
+          pool.query(`SELECT COUNT(*) FROM ${tableName}`),
+        ]);
+        const total = parseInt(count.rows[0].count);
+        res.json({ data: rows.rows, total, page, limit, totalPages: Math.ceil(total / limit) });
+      } else {
+        const result = await pool.query(`SELECT * FROM ${tableName} ORDER BY created_at DESC`);
+        res.json(result.rows);
+      }
     } catch (err) {
       res.status(500).json({ error: err.message });
     }

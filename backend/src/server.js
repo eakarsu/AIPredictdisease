@@ -1,9 +1,10 @@
 import express from 'express';
 import cors from 'cors';
+import helmet from 'helmet';
 import dotenv from 'dotenv';
 import { fileURLToPath } from 'url';
 import path from 'path';
-import { initDatabase, seedDatabase } from './db.js';
+import pool, { initDatabase, seedDatabase } from './db.js';
 import { authenticateToken } from './middleware/auth.js';
 import authRoutes from './routes/auth.js';
 import aiRoutes from './routes/ai.js';
@@ -15,7 +16,8 @@ dotenv.config({ path: path.resolve(__dirname, '../../.env') });
 const app = express();
 const PORT = process.env.BACKEND_PORT || 3001;
 
-app.use(cors());
+app.use(helmet());
+app.use(cors({ origin: process.env.CLIENT_URL || 'http://localhost:5173', credentials: true }));
 app.use(express.json());
 
 // Public routes
@@ -72,6 +74,74 @@ app.use('/api/facilities', authenticateToken, createCrudRouter('healthcare_facil
 
 app.use('/api/ai', authenticateToken, aiRoutes);
 
+// Population analytics (delegating to AI router which handles the /disease-prevalence subroute)
+app.use('/api/analytics', authenticateToken, aiRoutes);
+
+// Alert subscriber routes
+app.post('/api/alert-subscribers', authenticateToken, async (req, res) => {
+  try {
+    const { region, disease, min_severity, email } = req.body;
+    const result = await pool.query(
+      'INSERT INTO alert_subscribers (user_id, region, disease, min_severity, email) VALUES ($1,$2,$3,$4,$5) RETURNING *',
+      [req.user?.id, region, disease, min_severity || 'medium', email]
+    );
+    res.status(201).json(result.rows[0]);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+app.get('/api/alert-subscribers', authenticateToken, async (req, res) => {
+  try {
+    const result = await pool.query(
+      'SELECT * FROM alert_subscribers WHERE user_id = $1 ORDER BY created_at DESC',
+      [req.user?.id]
+    );
+    res.json(result.rows);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// Dispatch alert to matching subscribers (simulate email send)
+app.post('/api/public-health-alerts/:id/dispatch', authenticateToken, async (req, res) => {
+  try {
+    const alertId = req.params.id;
+    const alertResult = await pool.query('SELECT * FROM public_health_alerts WHERE id = $1', [alertId]);
+    if (alertResult.rows.length === 0) return res.status(404).json({ error: 'Alert not found' });
+
+    const alert = alertResult.rows[0];
+    const severityOrder = ['low', 'moderate', 'medium', 'high', 'critical'];
+    const alertSevIdx = severityOrder.indexOf(alert.severity);
+
+    const subscribers = await pool.query(`
+      SELECT * FROM alert_subscribers
+      WHERE (region IS NULL OR region ILIKE $1)
+        AND (disease IS NULL OR disease ILIKE $2)
+    `, [`%${alert.region || ''}%`, `%${alert.disease || ''}%`]);
+
+    const dispatched = [];
+    for (const sub of subscribers.rows) {
+      const minSevIdx = severityOrder.indexOf(sub.min_severity || 'medium');
+      if (alertSevIdx >= minSevIdx) {
+        const dispatch = await pool.query(
+          'INSERT INTO alert_dispatches (alert_id, subscriber_id, channel) VALUES ($1,$2,$3) RETURNING *',
+          [alertId, sub.id, 'email']
+        );
+        dispatched.push({ subscriber: sub.email, dispatch: dispatch.rows[0] });
+      }
+    }
+
+    res.json({
+      alert_id: alertId,
+      dispatched_count: dispatched.length,
+      dispatches: dispatched,
+    });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
 // Dashboard stats
 app.get('/api/dashboard/stats', authenticateToken, async (req, res) => {
   try {
@@ -100,7 +170,29 @@ async function start() {
   try {
     await initDatabase();
     await seedDatabase();
-    server = app.listen(PORT, () => {
+    server = 
+// === Custom Feature Mounts (batch_06) ===
+import('./routes/customFeat01_AgenticDiseaseSurveillance.js').then(m => app.use('/api/cf-agentic-disease-surveillance', m.default));
+import('./routes/customFeat02_IndividualRiskDashboard.js').then(m => app.use('/api/cf-individual-risk-dashboard', m.default));
+import('./routes/customFeat03_TreatmentEfficacyTracking.js').then(m => app.use('/api/cf-treatment-efficacy-tracking', m.default));
+import('./routes/customFeat04_OutbreakSimulation.js').then(m => app.use('/api/cf-outbreak-simulation', m.default));
+import('./routes/customFeat05_TravelHealthRisk.js').then(m => app.use('/api/cf-travel-health-risk', m.default));
+
+
+// === Batch 06 Gaps & Frontend Mounts ===
+app.use('/api/gap-patients-without-comorbidity', require('./routes/gapFeat_patients_without_comorbidity'));
+app.use('/api/gap-trends-without-seasonality', require('./routes/gapFeat_trends_without_seasonality'));
+app.use('/api/gap-backend-collapses-to-crud-js', require('./routes/gapFeat_backend_collapses_to_crud_js'));
+app.use('/api/gap-no-public-health-database-integration-cdc-who', require('./routes/gapFeat_no_public_health_database_integration_cdc_who'));
+app.use('/api/gap-no-case-management-workflows', require('./routes/gapFeat_no_case_management_workflows'));
+app.use('/api/gap-no-contact-tracing', require('./routes/gapFeat_no_contact_tracing'));
+app.use('/api/gap-limited-population-health-analytics', require('./routes/gapFeat_limited_population_health_analytics'));
+app.use('/api/gap-no-ehr-integration', require('./routes/gapFeat_no_ehr_integration'));
+app.use('/api/gap-no-notifications-module-grep-0', require('./routes/gapFeat_no_notifications_module_grep_0'));
+app.use('/api/gap-no-webhooks-for-outbreak-alerts', require('./routes/gapFeat_no_webhooks_for_outbreak_alerts'));
+app.use('/api/gap-no-integration-with-clinical-systems', require('./routes/gapFeat_no_integration_with_clinical_systems'));
+
+app.listen(PORT, () => {
       console.log(`🚀 Backend server running on http://localhost:${PORT}`);
     });
     server.on('error', (err) => {
