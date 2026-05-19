@@ -23,6 +23,7 @@ const navItems = [
   { path: '/comorbidity-analyze', label: 'Comorbidity' },
   { path: '/seasonality-predict', label: 'Seasonality' },
   { path: '/ai-history', label: 'AI History' },
+  { path: '/custom-views', label: 'Risk Analytics' },
   // === Batch 06 Gaps & Frontend Mounts ===
   { path: '/cf-agentic-disease-surveillance', label: 'Agentic disease surveillance', icon: '✨' },
   { path: '/cf-individual-risk-dashboard', label: 'Individual risk dashboard', icon: '✨' },

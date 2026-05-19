@@ -9,6 +9,7 @@ import { authenticateToken } from './middleware/auth.js';
 import authRoutes from './routes/auth.js';
 import aiRoutes from './routes/ai.js';
 import { createCrudRouter } from './routes/crud.js';
+import customViewsRouter from './routes/customViews.js';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 dotenv.config({ path: path.resolve(__dirname, '../../.env') });
@@ -73,6 +74,9 @@ app.use('/api/facilities', authenticateToken, createCrudRouter('healthcare_facil
 ]));
 
 app.use('/api/ai', authenticateToken, aiRoutes);
+
+// Custom Views (Risk Gauge + Family History Tree)
+app.use('/api/custom-views', customViewsRouter);
 
 // Population analytics (delegating to AI router which handles the /disease-prevalence subroute)
 app.use('/api/analytics', authenticateToken, aiRoutes);
@@ -170,29 +174,28 @@ async function start() {
   try {
     await initDatabase();
     await seedDatabase();
-    server = 
 // === Custom Feature Mounts (batch_06) ===
-import('./routes/customFeat01_AgenticDiseaseSurveillance.js').then(m => app.use('/api/cf-agentic-disease-surveillance', m.default));
-import('./routes/customFeat02_IndividualRiskDashboard.js').then(m => app.use('/api/cf-individual-risk-dashboard', m.default));
-import('./routes/customFeat03_TreatmentEfficacyTracking.js').then(m => app.use('/api/cf-treatment-efficacy-tracking', m.default));
-import('./routes/customFeat04_OutbreakSimulation.js').then(m => app.use('/api/cf-outbreak-simulation', m.default));
-import('./routes/customFeat05_TravelHealthRisk.js').then(m => app.use('/api/cf-travel-health-risk', m.default));
+import('./routes/customFeat01_AgenticDiseaseSurveillance.js').then(m => app.use('/api/cf-agentic-disease-surveillance', m.default)).catch(()=>{});
+import('./routes/customFeat02_IndividualRiskDashboard.js').then(m => app.use('/api/cf-individual-risk-dashboard', m.default)).catch(()=>{});
+import('./routes/customFeat03_TreatmentEfficacyTracking.js').then(m => app.use('/api/cf-treatment-efficacy-tracking', m.default)).catch(()=>{});
+import('./routes/customFeat04_OutbreakSimulation.js').then(m => app.use('/api/cf-outbreak-simulation', m.default)).catch(()=>{});
+import('./routes/customFeat05_TravelHealthRisk.js').then(m => app.use('/api/cf-travel-health-risk', m.default)).catch(()=>{});
 
 
-// === Batch 06 Gaps & Frontend Mounts ===
-app.use('/api/gap-patients-without-comorbidity', require('./routes/gapFeat_patients_without_comorbidity'));
-app.use('/api/gap-trends-without-seasonality', require('./routes/gapFeat_trends_without_seasonality'));
-app.use('/api/gap-backend-collapses-to-crud-js', require('./routes/gapFeat_backend_collapses_to_crud_js'));
-app.use('/api/gap-no-public-health-database-integration-cdc-who', require('./routes/gapFeat_no_public_health_database_integration_cdc_who'));
-app.use('/api/gap-no-case-management-workflows', require('./routes/gapFeat_no_case_management_workflows'));
-app.use('/api/gap-no-contact-tracing', require('./routes/gapFeat_no_contact_tracing'));
-app.use('/api/gap-limited-population-health-analytics', require('./routes/gapFeat_limited_population_health_analytics'));
-app.use('/api/gap-no-ehr-integration', require('./routes/gapFeat_no_ehr_integration'));
-app.use('/api/gap-no-notifications-module-grep-0', require('./routes/gapFeat_no_notifications_module_grep_0'));
-app.use('/api/gap-no-webhooks-for-outbreak-alerts', require('./routes/gapFeat_no_webhooks_for_outbreak_alerts'));
-app.use('/api/gap-no-integration-with-clinical-systems', require('./routes/gapFeat_no_integration_with_clinical_systems'));
+// === Batch 06 Gaps & Frontend Mounts (ESM dynamic imports) ===
+import('./routes/gapFeat_patients_without_comorbidity.js').then(m => app.use('/api/gap-patients-without-comorbidity', m.default)).catch(()=>{});
+import('./routes/gapFeat_trends_without_seasonality.js').then(m => app.use('/api/gap-trends-without-seasonality', m.default)).catch(()=>{});
+import('./routes/gapFeat_backend_collapses_to_crud_js.js').then(m => app.use('/api/gap-backend-collapses-to-crud-js', m.default)).catch(()=>{});
+import('./routes/gapFeat_no_public_health_database_integration_cdc_who.js').then(m => app.use('/api/gap-no-public-health-database-integration-cdc-who', m.default)).catch(()=>{});
+import('./routes/gapFeat_no_case_management_workflows.js').then(m => app.use('/api/gap-no-case-management-workflows', m.default)).catch(()=>{});
+import('./routes/gapFeat_no_contact_tracing.js').then(m => app.use('/api/gap-no-contact-tracing', m.default)).catch(()=>{});
+import('./routes/gapFeat_limited_population_health_analytics.js').then(m => app.use('/api/gap-limited-population-health-analytics', m.default)).catch(()=>{});
+import('./routes/gapFeat_no_ehr_integration.js').then(m => app.use('/api/gap-no-ehr-integration', m.default)).catch(()=>{});
+import('./routes/gapFeat_no_notifications_module_grep_0.js').then(m => app.use('/api/gap-no-notifications-module-grep-0', m.default)).catch(()=>{});
+import('./routes/gapFeat_no_webhooks_for_outbreak_alerts.js').then(m => app.use('/api/gap-no-webhooks-for-outbreak-alerts', m.default)).catch(()=>{});
+import('./routes/gapFeat_no_integration_with_clinical_systems.js').then(m => app.use('/api/gap-no-integration-with-clinical-systems', m.default)).catch(()=>{});
 
-app.listen(PORT, () => {
+server = app.listen(PORT, () => {
       console.log(`🚀 Backend server running on http://localhost:${PORT}`);
     });
     server.on('error', (err) => {

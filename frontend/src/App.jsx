@@ -32,6 +32,7 @@ import GapNoEhrIntegrationPage from './pages/GapNoEhrIntegrationPage';
 import GapNoNotificationsModuleGrep0Page from './pages/GapNoNotificationsModuleGrep0Page';
 import GapNoWebhooksForOutbreakAlertsPage from './pages/GapNoWebhooksForOutbreakAlertsPage';
 import GapNoIntegrationWithClinicalSystemsPage from './pages/GapNoIntegrationWithClinicalSystemsPage';
+import CustomViewsPage from './pages/CustomViewsPage';
 function ProtectedRoute({ children }) {
   const token = localStorage.getItem('token');
   if (!token) return <Navigate to="/login" replace />;
@@ -70,6 +71,7 @@ export default function App() {
         <Route path="/patient-history" element={<ProtectedRoute><PatientHistory /></ProtectedRoute>} />
         <Route path="/comorbidity-analyze" element={<ProtectedRoute><ComorbidityAnalyze /></ProtectedRoute>} />
         <Route path="/seasonality-predict" element={<ProtectedRoute><SeasonalityPredict /></ProtectedRoute>} />
+        <Route path="/custom-views" element={<ProtectedRoute><CustomViewsPage /></ProtectedRoute>} />
         <Route path="*" element={<Navigate to="/" replace />} />
       
           {/* // === Batch 06 Gaps & Frontend Mounts === */}
