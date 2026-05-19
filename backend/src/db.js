@@ -177,6 +177,87 @@ export async function initDatabase() {
       );
     `);
 
+    // Forecasts table
+    await client.query(`
+      CREATE TABLE IF NOT EXISTS forecasts (
+        id SERIAL PRIMARY KEY,
+        user_id INTEGER,
+        endpoint VARCHAR(100),
+        disease VARCHAR(100),
+        region VARCHAR(100),
+        result TEXT,
+        result_json JSONB,
+        predicted_cases INTEGER,
+        confidence_low INTEGER,
+        confidence_high INTEGER,
+        created_at TIMESTAMP DEFAULT NOW()
+      )
+    `);
+
+    // Alert subscribers
+    await client.query(`
+      CREATE TABLE IF NOT EXISTS alert_subscribers (
+        id SERIAL PRIMARY KEY,
+        user_id INTEGER,
+        region VARCHAR(255),
+        disease VARCHAR(255),
+        min_severity VARCHAR(50) DEFAULT 'medium',
+        email VARCHAR(255),
+        created_at TIMESTAMP DEFAULT NOW()
+      )
+    `);
+
+    // Alert dispatches
+    await client.query(`
+      CREATE TABLE IF NOT EXISTS alert_dispatches (
+        id SERIAL PRIMARY KEY,
+        alert_id INTEGER,
+        subscriber_id INTEGER,
+        sent_at TIMESTAMP DEFAULT NOW(),
+        channel VARCHAR(50) DEFAULT 'email',
+        created_at TIMESTAMP DEFAULT NOW()
+      )
+    `);
+
+    // Patient history tracking
+    await client.query(`
+      CREATE TABLE IF NOT EXISTS patient_history (
+        id SERIAL PRIMARY KEY,
+        patient_id VARCHAR(255) NOT NULL,
+        symptom_report JSONB NOT NULL,
+        prediction_id INTEGER,
+        created_at TIMESTAMP DEFAULT NOW()
+      )
+    `);
+
+    // AI results table
+    await client.query(`
+      CREATE TABLE IF NOT EXISTS ai_results (
+        id SERIAL PRIMARY KEY,
+        user_id INTEGER,
+        endpoint VARCHAR(150),
+        patient_id VARCHAR(255),
+        result TEXT,
+        result_json JSONB,
+        created_at TIMESTAMP DEFAULT NOW()
+      )
+    `);
+
+    // HIPAA audit log
+    await client.query(`
+      CREATE TABLE IF NOT EXISTS hipaa_audit_log (
+        id SERIAL PRIMARY KEY,
+        user_id INTEGER,
+        action VARCHAR(100) NOT NULL,
+        resource VARCHAR(150),
+        patient_id VARCHAR(255),
+        ip_address VARCHAR(45),
+        user_agent TEXT,
+        details JSONB,
+        created_at TIMESTAMP DEFAULT NOW()
+      )
+    `);
+
     console.log('✅ All tables created successfully');
   } finally {
     client.release();

@@ -290,12 +290,22 @@ export default function FeaturePage({ feature }) {
   const [editingItem, setEditingItem] = useState(null);
   const [formData, setFormData] = useState({});
   const [saving, setSaving] = useState(false);
+  const [page, setPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
+  const [total, setTotal] = useState(0);
 
-  const fetchItems = useCallback(async () => {
+  const fetchItems = useCallback(async (p = 1) => {
     setLoading(true);
     try {
-      const { data } = await api.get(config.endpoint);
-      setItems(data);
+      const { data } = await api.get(`${config.endpoint}?page=${p}&limit=20`);
+      if (data && typeof data === 'object' && 'data' in data) {
+        setItems(data.data || []);
+        setTotalPages(data.totalPages || 1);
+        setTotal(data.total || 0);
+        setPage(p);
+      } else {
+        setItems(Array.isArray(data) ? data : []);
+      }
     } catch (err) {
       console.error('Failed to fetch:', err);
     } finally {
@@ -304,7 +314,8 @@ export default function FeaturePage({ feature }) {
   }, [config.endpoint]);
 
   useEffect(() => {
-    fetchItems();
+    fetchItems(1);
+    setPage(1);
     setSelectedItem(null);
     setShowDetail(false);
     setShowForm(false);
@@ -342,7 +353,7 @@ export default function FeaturePage({ feature }) {
     try {
       await api.delete(`${config.endpoint}/${item.id}`);
       setShowDetail(false);
-      fetchItems();
+      fetchItems(page);
     } catch (err) {
       alert('Failed to delete: ' + (err.response?.data?.error || err.message));
     }
@@ -358,7 +369,7 @@ export default function FeaturePage({ feature }) {
         await api.post(config.endpoint, formData);
       }
       setShowForm(false);
-      fetchItems();
+      fetchItems(page);
     } catch (err) {
       alert('Failed to save: ' + (err.response?.data?.error || err.message));
     } finally {
@@ -366,11 +377,13 @@ export default function FeaturePage({ feature }) {
     }
   };
 
-  const filteredItems = items.filter(item =>
-    Object.values(item).some(val =>
-      String(val).toLowerCase().includes(search.toLowerCase())
-    )
-  );
+  const filteredItems = search
+    ? items.filter(item =>
+        Object.values(item).some(val =>
+          String(val).toLowerCase().includes(search.toLowerCase())
+        )
+      )
+    : items;
 
   return (
     <div>
@@ -378,7 +391,7 @@ export default function FeaturePage({ feature }) {
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6">
         <div>
           <h1 className="text-2xl font-bold text-gray-900">{config.title}</h1>
-          <p className="text-gray-500 text-sm mt-1">{filteredItems.length} records</p>
+          <p className="text-gray-500 text-sm mt-1">{total > 0 ? `${total} total records` : `${filteredItems.length} records`}</p>
         </div>
         <div className="flex items-center gap-3">
           <div className="relative">
@@ -454,6 +467,18 @@ export default function FeaturePage({ feature }) {
           </table>
         </div>
       </div>
+
+      {/* Pagination */}
+      {totalPages > 1 && (
+        <div className="flex items-center justify-between mt-4">
+          <p className="text-sm text-gray-500">{total} total records</p>
+          <div className="flex items-center gap-2">
+            <button onClick={() => fetchItems(page - 1)} disabled={page === 1} className="px-3 py-1.5 text-xs font-medium text-gray-600 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 disabled:opacity-40">Prev</button>
+            <span className="text-xs text-gray-500">Page {page} of {totalPages}</span>
+            <button onClick={() => fetchItems(page + 1)} disabled={page === totalPages} className="px-3 py-1.5 text-xs font-medium text-gray-600 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 disabled:opacity-40">Next</button>
+          </div>
+        </div>
+      )}
 
       {/* Detail Modal */}
       <Modal isOpen={showDetail} onClose={() => setShowDetail(false)} title="Record Details" size="xl">
