@@ -33,6 +33,9 @@ import GapNoNotificationsModuleGrep0Page from './pages/GapNoNotificationsModuleG
 import GapNoWebhooksForOutbreakAlertsPage from './pages/GapNoWebhooksForOutbreakAlertsPage';
 import GapNoIntegrationWithClinicalSystemsPage from './pages/GapNoIntegrationWithClinicalSystemsPage';
 import CustomViewsPage from './pages/CustomViewsPage';
+import CodexCustomVizFeature from './pages/CodexCustomVizFeature';
+import CodexOperationsFeature from './pages/CodexOperationsFeature';
+
 function ProtectedRoute({ children }) {
   const token = localStorage.getItem('token');
   if (!token) return <Navigate to="/login" replace />;
@@ -50,6 +53,9 @@ export default function App() {
   return (
     <BrowserRouter>
       <Routes>
+        <Route path="/codex/custom-viz" element={<ProtectedRoute><CodexCustomVizFeature /></ProtectedRoute>} />
+        <Route path="/codex/operations" element={<ProtectedRoute><CodexOperationsFeature /></ProtectedRoute>} />
+
         <Route path="/login" element={<Login />} />
         <Route path="/" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
         <Route path="/outbreaks" element={<ProtectedRoute><FeaturePage feature="outbreaks" /></ProtectedRoute>} />
