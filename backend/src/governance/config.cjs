@@ -1,0 +1,23 @@
+module.exports={
+ caseType:'clinician_reviewed_disease_risk_observation',initialState:'consent_pending',
+ states:['consent_pending','sources_validated','risk_observation_recorded','uncertainty_review','clinician_review','followup_owned','public_health_review','resolved','escalated'],
+ createRoles:['clinician','clinical_coordinator'],assessmentRoles:['clinician','epidemiology_reviewer','clinical_safety_reviewer'],auditRoles:['clinical_coordinator','privacy_officer','public_health_reviewer','auditor'],connectorRoles:['integration_operator','clinical_coordinator'],
+ evidenceKinds:['consent_receipt','patient_history_pointer','ehr_fhir_version','lab_result_pointer','public_health_dataset_version','surveillance_snapshot','model_version','calibration_report','bias_slice_report','uncertainty_report','clinician_review','followup_assignment','public_health_review','escalation_receipt','outcome_record'],
+ requiredSignals:['observationVersion','clinicalSourceVersion','publicHealthSourceVersion','modelVersion','observedAt','evaluatedAt','staleAfterSeconds','missingDataRate','confidence','calibrationError','consentStatus','biasSliceStatus','clinicalSourceStatus','policyVersion'],
+ professionalBoundary:'Disease-risk output is an observation aid, not a diagnosis, treatment, emergency instruction, or public-health order; licensed clinicians and authorized public-health professionals retain every decision.',
+ connectors:[{name:'ehr_fhir',purpose:'consented encounter and reviewed write receipts'},{name:'laboratory',purpose:'signed result references'},{name:'public_health_registry',purpose:'versioned surveillance snapshots'},{name:'imaging',purpose:'approved study references only'},{name:'scheduling',purpose:'follow-up ownership receipts'},{name:'secure_messaging',purpose:'clinician and public-health acknowledgements'}],
+ transitions:[
+  {from:'consent_pending',action:'validate_sources',to:'sources_validated',roles:['clinician','integration_operator'],requiresEvidence:true},
+  {from:'sources_validated',action:'record_risk_observation',to:'risk_observation_recorded',roles:['epidemiology_reviewer','clinician'],requiresEvidence:true},
+  {from:'risk_observation_recorded',action:'review_uncertainty',to:'uncertainty_review',roles:['clinical_safety_reviewer','clinician'],requiresEvidence:true},
+  {from:'uncertainty_review',action:'submit_clinician_review',to:'clinician_review',roles:['clinician'],requiresEvidence:true,dualControl:true},
+  {from:'clinician_review',action:'assign_followup',to:'followup_owned',roles:['clinical_coordinator'],requiresEvidence:true,dualControl:true},
+  {from:'clinician_review',action:'request_public_health_review',to:'public_health_review',roles:['public_health_reviewer'],requiresEvidence:true,dualControl:true},
+  {from:'followup_owned',action:'resolve',to:'resolved',roles:['clinician'],requiresEvidence:true,dualControl:true},
+  {from:'public_health_review',action:'resolve',to:'resolved',roles:['public_health_reviewer','clinician'],requiresEvidence:true,dualControl:true},
+  {from:'sources_validated',action:'escalate',to:'escalated',roles:['clinician','clinical_safety_reviewer'],requiresEvidence:true}
+ ],
+ acceptedFixture:{observationVersion:'o1',clinicalSourceVersion:'ehr1',publicHealthSourceVersion:'registry1',modelVersion:'m1',observedAt:'2026-07-18T10:00:00Z',evaluatedAt:'2026-07-18T10:01:00Z',staleAfterSeconds:300,missingDataRate:0.01,confidence:0.88,calibrationError:0.05,consentStatus:'verified',biasSliceStatus:'passed',clinicalSourceStatus:'verified',policyVersion:'p1'},
+ readyDisposition:'clinician_review_required',holdDisposition:'manual_clinical_review',decisionField:'clinicalAction',
+ assess:x=>{const observed=Date.parse(x.observedAt),evaluated=Date.parse(x.evaluatedAt),limit=Number(x.staleAfterSeconds),missing=Number(x.missingDataRate),confidence=Number(x.confidence),calibration=Number(x.calibrationError);const stale=!Number.isFinite(observed)||!Number.isFinite(evaluated)||!Number.isFinite(limit)||limit<=0||evaluated<observed||(evaluated-observed)/1000>limit;const valid=[missing,confidence,calibration].every(Number.isFinite)&&missing>=0&&missing<=1&&confidence>=0&&confidence<=1&&calibration>=0&&calibration<=1;const ready=!stale&&valid&&missing<=0.05&&calibration<=0.1&&x.consentStatus==='verified'&&x.biasSliceStatus==='passed'&&x.clinicalSourceStatus==='verified';return{disposition:ready?'clinician_review_required':'manual_clinical_review',clinicalAction:null,stale,metrics:{missingDataRate:valid?missing:null,confidence:valid?confidence:null,calibrationError:valid?calibration:null},versions:{observation:x.observationVersion,clinical:x.clinicalSourceVersion,publicHealth:x.publicHealthSourceVersion,model:x.modelVersion}};}
+};

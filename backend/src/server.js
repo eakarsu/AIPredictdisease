@@ -10,16 +10,22 @@ import authRoutes from './routes/auth.js';
 import aiRoutes from './routes/ai.js';
 import { createCrudRouter } from './routes/crud.js';
 import customViewsRouter from './routes/customViews.js';
+import governanceRouter from './governance/router.js';
+import runtime from './governance/runtime.cjs';
+import provider from './governance/providerGate.cjs';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 dotenv.config({ path: path.resolve(__dirname, '../../.env') });
+runtime.validateRuntime();
 
 const app = express();
 const PORT = process.env.BACKEND_PORT || 3001;
 
 app.use(helmet());
-app.use(cors({ origin: process.env.CLIENT_URL || 'http://localhost:5173', credentials: true }));
+const allowedOrigins = String(process.env.CORS_ORIGINS || process.env.CLIENT_URL || 'http://localhost:5173').split(',').map((value) => value.trim()).filter(Boolean);
+app.use(cors({ origin: (origin, callback) => !origin || allowedOrigins.includes(origin) ? callback(null, true) : callback(new Error('Origin not allowed by CORS')), credentials: true }));
 app.use(express.json());
+app.use(provider.createProviderGate(['/api/ai', '/api/gap', '/api/cf']));
 
 // Public routes
 app.use('/api/auth', authRoutes);
@@ -76,10 +82,11 @@ app.use('/api/facilities', authenticateToken, createCrudRouter('healthcare_facil
 app.use('/api/ai', authenticateToken, aiRoutes);
 
 // Custom Views (Risk Gauge + Family History Tree)
-app.use('/api/custom-views', customViewsRouter);
+app.use('/api/custom-views', authenticateToken, customViewsRouter);
 
 // Population analytics (delegating to AI router which handles the /disease-prevalence subroute)
 app.use('/api/analytics', authenticateToken, aiRoutes);
+app.use('/api/governed-disease-observations', governanceRouter);
 
 // Alert subscriber routes
 app.post('/api/alert-subscribers', authenticateToken, async (req, res) => {
@@ -172,8 +179,8 @@ let server;
 
 async function start() {
   try {
-    await initDatabase();
-    await seedDatabase();
+    if (process.env.ENABLE_LEGACY_SCHEMA_BOOTSTRAP === 'true') await initDatabase();
+    if (process.env.ALLOW_DEMO_SEED === 'true') await seedDatabase();
 // === Custom Feature Mounts (batch_06) ===
 import('./routes/customFeat01_AgenticDiseaseSurveillance.js').then(m => app.use('/api/cf-agentic-disease-surveillance', m.default)).catch(()=>{});
 import('./routes/customFeat02_IndividualRiskDashboard.js').then(m => app.use('/api/cf-individual-risk-dashboard', m.default)).catch(()=>{});
