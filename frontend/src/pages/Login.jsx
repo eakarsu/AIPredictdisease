@@ -11,8 +11,8 @@ export default function Login() {
   const navigate = useNavigate();
 
   const handleAutoFill = () => {
-    setEmail('admin@outbreakpredict.com');
-    setPassword('admin123');
+    setEmail(import.meta.env.VITE_DEMO_EMAIL || '');
+    setPassword(import.meta.env.VITE_DEMO_PASSWORD || '');
   };
 
   const handleLogin = async (e) => {
