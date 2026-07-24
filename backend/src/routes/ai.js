@@ -31,16 +31,20 @@ async function auditLog(req, action, resource, patientId, details) {
 router.use(aiRateLimiter);
 
 async function callOpenRouter(messages) {
-  const response = await fetch('https://openrouter.ai/api/v1/chat/completions', {
+  const apiKey = process.env.OPENROUTER_API_KEY;
+  const model = process.env.OPENROUTER_MODEL;
+  const baseUrl = process.env.OPENROUTER_BASE_URL;
+  if (!apiKey || !model || !baseUrl) throw new Error('OpenRouter key, model, and base URL are required');
+  const response = await fetch(`${baseUrl.replace(/\/$/, '')}/chat/completions`, {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
-      'Authorization': `Bearer ${process.env.OPENROUTER_API_KEY}`,
+      'Authorization': `Bearer ${apiKey}`,
       'HTTP-Referer': 'http://localhost:5173',
       'X-Title': 'OutbreakPredict AI Platform'
     },
     body: JSON.stringify({
-      model: process.env.OPENROUTER_MODEL || 'anthropic/claude-3-5-sonnet-20241022',
+      model,
       messages,
       max_tokens: 2000,
       temperature: 0.7
@@ -48,10 +52,12 @@ async function callOpenRouter(messages) {
   });
 
   const data = await response.json();
-  if (data.error) {
-    throw new Error(data.error.message || 'OpenRouter API error');
+  if (!response.ok || data.error) {
+    throw new Error(data.error?.message || `OpenRouter API error (${response.status})`);
   }
-  return data.choices[0].message.content;
+  const content = data.choices?.[0]?.message?.content;
+  if (!content || !String(content).trim()) throw new Error('OpenRouter returned empty content');
+  return content;
 }
 
 function parseAIJson(text) {

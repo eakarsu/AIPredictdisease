@@ -2,11 +2,15 @@
 set -euo pipefail
 
 PROJECT_DIR="$(cd "$(dirname "$0")" && pwd)"
+require_file() { [ -f "$1" ] || { echo "Missing required file: $1" >&2; exit 1; }; }
+require_file "$PROJECT_DIR/.env"
+set -a
+source "$PROJECT_DIR/.env"
+set +a
 BACKEND_PORT="${BACKEND_PORT:-${SERVER_PORT:-3001}}"
 FRONTEND_PORT="${FRONTEND_PORT:-${CLIENT_PORT:-3000}}"
 CHILD_PIDS=()
 
-require_file() { [ -f "$1" ] || { echo "Missing required file: $1" >&2; exit 1; }; }
 require_dir() { [ -d "$1" ] || { echo "Missing dependencies: $1 (install explicitly before startup)" >&2; exit 1; }; }
 port_free() {
   if command -v lsof >/dev/null 2>&1 && lsof -ti ":$1" >/dev/null 2>&1; then
@@ -21,9 +25,10 @@ cleanup() {
 }
 trap cleanup INT TERM EXIT
 
-require_file "$PROJECT_DIR/.env"
 require_dir "$PROJECT_DIR/backend/node_modules"
 port_free "$BACKEND_PORT"
+[[ "${ALLOW_SCHEMA_MIGRATION:-}" == "true" ]] || { echo 'ALLOW_SCHEMA_MIGRATION=true is required.' >&2; exit 1; }
+(cd "$PROJECT_DIR/backend" && node scripts/prepareRuntime.js)
 
 if [ "${NODE_ENV:-}" = "test" ]; then
   echo "Starting API-only test runtime on port $BACKEND_PORT."
@@ -36,7 +41,7 @@ port_free "$FRONTEND_PORT"
 
 (cd "$PROJECT_DIR/backend" && BACKEND_PORT="$BACKEND_PORT" node src/server.js) &
 CHILD_PIDS+=("$!")
-(cd "$PROJECT_DIR/frontend" && npm run dev -- --port "$FRONTEND_PORT" --host 127.0.0.1) &
+(cd "$PROJECT_DIR/frontend" && npm run dev -- --port "$FRONTEND_PORT" --host 127.0.0.1 --strictPort) &
 CHILD_PIDS+=("$!")
 
 echo "Disease observation services started without installing, seeding, migrating, or reclaiming ports."

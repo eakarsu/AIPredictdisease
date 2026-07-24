@@ -25,7 +25,7 @@ app.use(helmet());
 const allowedOrigins = String(process.env.CORS_ORIGINS || process.env.CLIENT_URL || 'http://localhost:5173').split(',').map((value) => value.trim()).filter(Boolean);
 app.use(cors({ origin: (origin, callback) => !origin || allowedOrigins.includes(origin) ? callback(null, true) : callback(new Error('Origin not allowed by CORS')), credentials: true }));
 app.use(express.json());
-app.use(provider.createProviderGate(['/api/ai', '/api/gap', '/api/cf']));
+app.use(provider.createProviderGate(['/api/gap', '/api/cf']));
 
 // Public routes
 app.use('/api/auth', authRoutes);
