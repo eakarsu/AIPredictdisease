@@ -111,7 +111,7 @@ export default function Login() {
               className="w-full flex items-center justify-center gap-2 py-3 px-4 bg-gradient-to-r from-primary-50 to-blue-50 text-primary-700 rounded-lg hover:from-primary-100 hover:to-blue-100 transition-all border border-primary-200 font-medium"
             >
               <Zap className="h-4 w-4" />
-              Quick Demo Login
+              Auto Fill Demo Credentials
             </button>
           </div>
         </div>
