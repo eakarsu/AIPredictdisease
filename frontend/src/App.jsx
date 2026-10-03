@@ -14,6 +14,7 @@ import PatientHistory from './pages/PatientHistory';
 import ComorbidityAnalyze from './pages/ComorbidityAnalyze';
 import SeasonalityPredict from './pages/SeasonalityPredict';
 import Navbar from './components/Navbar';
+import AppSidebar from './components/AppSidebar';
 
 // // === Batch 06 Gaps & Frontend Mounts ===
 import CFAgenticDiseaseSurveillancePage from './pages/CFAgenticDiseaseSurveillancePage';
@@ -40,7 +41,8 @@ function ProtectedRoute({ children }) {
   const token = localStorage.getItem('token');
   if (!token) return <Navigate to="/login" replace />;
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-gray-50 codex-nav-shell">
+      <AppSidebar />
       <Navbar />
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {children}
