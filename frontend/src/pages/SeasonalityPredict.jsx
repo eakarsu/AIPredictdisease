@@ -1,3 +1,6 @@
+import NativeAIControls from "../components/NativeAIControls";
+import useNativeAIRequest from "../components/useNativeAIRequest";
+import FormattedAIReport from "../components/FormattedAIReport";
 import React, { useState } from 'react';
 import { Calendar, TrendingUp } from 'lucide-react';
 import api from '../services/api';
@@ -12,6 +15,8 @@ function safeParseJSON(text, fallback) {
 }
 
 export default function SeasonalityPredict() {
+  const nativeAIRequest = useNativeAIRequest();
+
   const [diseaseName, setDiseaseName] = useState('');
   const [region, setRegion] = useState('');
   const [historyText, setHistoryText] = useState('');
@@ -36,7 +41,7 @@ export default function SeasonalityPredict() {
         if (Array.isArray(parsed)) payload.history = parsed;
         else payload.history_text = historyText.trim();
       }
-      const { data } = await api.post('/ai/seasonality-predict', payload);
+      const { data } = await nativeAIRequest.run((signal) => api.post('/ai/seasonality-predict', payload, { signal }));
       setResult(data);
     } catch (err) {
       setError(err.response?.data?.error || 'Forecast failed');
@@ -50,7 +55,7 @@ export default function SeasonalityPredict() {
   const interventions = parsed?.intervention_windows || parsed?.interventions || [];
 
   return (
-    <div>
+    <NativeAIControls busy={nativeAIRequest.busy} onCancel={nativeAIRequest.cancel} context="Predictdisease"><div>
       <div className="mb-6">
         <div className="flex items-center gap-3 mb-2">
           <div className="p-2 bg-gradient-to-br from-emerald-500 to-teal-600 rounded-xl">
@@ -66,7 +71,7 @@ export default function SeasonalityPredict() {
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">Disease Name</label>
-              <input
+              <input data-ai-field="diseaseName"
                 type="text"
                 value={diseaseName}
                 onChange={(e) => setDiseaseName(e.target.value)}
@@ -76,7 +81,7 @@ export default function SeasonalityPredict() {
             </div>
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">Region (optional)</label>
-              <input
+              <input data-ai-field="region"
                 type="text"
                 value={region}
                 onChange={(e) => setRegion(e.target.value)}
@@ -89,12 +94,12 @@ export default function SeasonalityPredict() {
             <label className="block text-sm font-medium text-gray-700 mb-1">
               Case History (JSON array or free text — optional)
             </label>
-            <textarea
+            <textarea data-ai-field="historyText"
               rows={5}
               value={historyText}
               onChange={(e) => setHistoryText(e.target.value)}
               className="input-field"
-              placeholder='[{"month":"2023-01","cases":120}, ...] — server pulls 36 months by name when omitted'
+              placeholder='[{"month":"2025-01","cases":120},{"month":"2025-02","cases":150},{"month":"2025-03","cases":90}]'
             />
           </div>
           {error && <p className="text-sm text-red-600 mb-3">{error}</p>}
@@ -179,11 +184,11 @@ export default function SeasonalityPredict() {
           )}
 
           <details className="card p-3">
-            <summary className="cursor-pointer text-sm text-gray-500">Raw response</summary>
-            <pre className="text-xs overflow-auto mt-2">{JSON.stringify(result, null, 2)}</pre>
+            <summary className="cursor-pointer text-sm text-gray-500">Complete report</summary>
+            <FormattedAIReport response={result} />
           </details>
         </div>
       )}
-    </div>
+    </div></NativeAIControls>
   );
 }

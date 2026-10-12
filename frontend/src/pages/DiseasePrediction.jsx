@@ -1,6 +1,8 @@
+import NativeAIControls from "../components/NativeAIControls.jsx";
 import React, { useState } from 'react';
 import { Brain, Plus, X, AlertTriangle, CheckCircle, Clock } from 'lucide-react';
 import api from '../services/api';
+import FormattedAIReport from '../components/FormattedAIReport';
 
 const urgencyColors = {
   low: 'bg-green-100 text-green-800 border-green-300',
@@ -55,7 +57,7 @@ export default function DiseasePrediction() {
   const parsed = result?.parsed;
 
   return (
-    <div>
+    <NativeAIControls busy={loading} context="Predictdisease"><div>
       <div className="mb-6">
         <div className="flex items-center gap-3 mb-2">
           <div className="p-2 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-xl">
@@ -72,15 +74,15 @@ export default function DiseasePrediction() {
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">Patient ID (optional)</label>
-              <input type="text" value={patientId} onChange={e => setPatientId(e.target.value)} className="input-field" placeholder="e.g., PAT-001" />
+              <input data-ai-field={"patientId"} type="text" value={patientId} onChange={e => setPatientId(e.target.value)} className="input-field" placeholder="e.g., PAT-001" />
             </div>
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">Age</label>
-              <input type="number" value={age} onChange={e => setAge(e.target.value)} className="input-field" placeholder="e.g., 45" min="0" max="120" />
+              <input data-ai-field={"age"} type="number" value={age} onChange={e => setAge(e.target.value)} className="input-field" placeholder="e.g., 45" min="0" max="120" />
             </div>
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">Gender</label>
-              <select value={gender} onChange={e => setGender(e.target.value)} className="input-field">
+              <select data-ai-field={"gender"} value={gender} onChange={e => setGender(e.target.value)} className="input-field">
                 <option value="">Select...</option>
                 <option value="male">Male</option>
                 <option value="female">Female</option>
@@ -91,7 +93,7 @@ export default function DiseasePrediction() {
 
           <div className="mb-4">
             <label className="block text-sm font-medium text-gray-700 mb-1">Medical History (comma-separated)</label>
-            <input type="text" value={medicalHistory} onChange={e => setMedicalHistory(e.target.value)} className="input-field" placeholder="e.g., diabetes, hypertension, asthma" />
+            <input data-ai-field={"medicalHistory"} type="text" value={medicalHistory} onChange={e => setMedicalHistory(e.target.value)} className="input-field" placeholder="e.g., diabetes, hypertension, asthma" />
           </div>
 
           <div className="mb-4">
@@ -104,7 +106,7 @@ export default function DiseasePrediction() {
             <div className="space-y-2">
               {symptoms.map((s, i) => (
                 <div key={i} className="flex items-center gap-2">
-                  <input
+                  <input data-ai-field={"s"}
                     type="text"
                     value={s}
                     onChange={e => updateSymptom(i, e.target.value)}
@@ -238,6 +240,7 @@ export default function DiseasePrediction() {
           )}
         </div>
       )}
-    </div>
+      {result && <FormattedAIReport response={result} title="Complete AI report" />}
+    </div></NativeAIControls>
   );
 }

@@ -1,6 +1,8 @@
+import NativeAIControls from "../components/NativeAIControls.jsx";
 import React, { useState } from 'react';
 import { Brain, Plus, X } from 'lucide-react';
 import api from '../services/api';
+import FormattedAIReport from '../components/FormattedAIReport';
 
 export default function ComorbidityAnalyze() {
   const [patientId, setPatientId] = useState('');
@@ -45,7 +47,7 @@ export default function ComorbidityAnalyze() {
   const parsed = result?.parsed;
 
   return (
-    <div>
+    <NativeAIControls busy={loading} context="Predictdisease"><div>
       <div className="mb-6">
         <div className="flex items-center gap-3 mb-2">
           <div className="p-2 bg-gradient-to-br from-purple-500 to-indigo-600 rounded-xl">
@@ -63,7 +65,7 @@ export default function ComorbidityAnalyze() {
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">Patient ID (optional)</label>
-              <input
+              <input data-ai-field={"patientId"}
                 type="text"
                 value={patientId}
                 onChange={(e) => setPatientId(e.target.value)}
@@ -73,7 +75,7 @@ export default function ComorbidityAnalyze() {
             </div>
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">Age</label>
-              <input
+              <input data-ai-field={"age"}
                 type="number"
                 min="0"
                 max="120"
@@ -85,7 +87,7 @@ export default function ComorbidityAnalyze() {
             </div>
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">Gender</label>
-              <select
+              <select data-ai-field={"gender"}
                 value={gender}
                 onChange={(e) => setGender(e.target.value)}
                 className="input-field"
@@ -101,7 +103,7 @@ export default function ComorbidityAnalyze() {
             <label className="block text-sm font-medium text-gray-700 mb-1">
               Demographics / Lifestyle (free text)
             </label>
-            <input
+            <input data-ai-field={"demographics"}
               type="text"
               value={demographics}
               onChange={(e) => setDemographics(e.target.value)}
@@ -123,7 +125,7 @@ export default function ComorbidityAnalyze() {
             <div className="space-y-2">
               {conditions.map((c, i) => (
                 <div key={i} className="flex items-center gap-2">
-                  <input
+                  <input data-ai-field={"c"}
                     type="text"
                     value={c}
                     onChange={(e) => updateCondition(i, e.target.value)}
@@ -190,7 +192,7 @@ export default function ComorbidityAnalyze() {
                 {parsed.elevated_risks.map((r, i) => (
                   <li key={i} className="text-sm text-gray-700 flex items-start gap-2">
                     <span className="text-orange-500 mt-0.5">•</span>
-                    {typeof r === 'string' ? r : JSON.stringify(r)}
+                    {typeof r === 'string' ? r : <FormattedAIReport response={r} title="Finding" />}
                   </li>
                 ))}
               </ul>
@@ -203,7 +205,7 @@ export default function ComorbidityAnalyze() {
               <div className="space-y-2">
                 {parsed.screening_priorities.map((s, i) => (
                   <div key={i} className="p-3 bg-blue-50 rounded-lg text-sm">
-                    {typeof s === 'string' ? s : JSON.stringify(s)}
+                    {typeof s === 'string' ? s : <FormattedAIReport response={s} title="Finding" />}
                   </div>
                 ))}
               </div>
@@ -219,7 +221,7 @@ export default function ComorbidityAnalyze() {
                 {parsed.drug_interactions.map((d, i) => (
                   <li key={i} className="text-sm text-red-700 flex items-start gap-2">
                     <span className="text-red-500 mt-0.5">•</span>
-                    {typeof d === 'string' ? d : JSON.stringify(d)}
+                    {typeof d === 'string' ? d : <FormattedAIReport response={d} title="Finding" />}
                   </li>
                 ))}
               </ul>
@@ -233,6 +235,7 @@ export default function ComorbidityAnalyze() {
           )}
         </div>
       )}
-    </div>
+      {result && <FormattedAIReport response={result} title="Complete AI report" />}
+    </div></NativeAIControls>
   );
 }

@@ -1,6 +1,8 @@
+import NativeAIControls from "../components/NativeAIControls.jsx";
 import React, { useState } from 'react';
 import { Shield, Plus, X, TrendingUp } from 'lucide-react';
 import api from '../services/api';
+import FormattedAIReport from '../components/FormattedAIReport';
 
 const riskLevelColors = {
   low: 'bg-green-100 text-green-800',
@@ -61,7 +63,7 @@ export default function RiskFactorAnalysis() {
   const parsed = result?.parsed;
 
   return (
-    <div>
+    <NativeAIControls busy={loading} context="Predictdisease"><div>
       <div className="mb-6">
         <div className="flex items-center gap-3 mb-2">
           <div className="p-2 bg-gradient-to-br from-teal-500 to-emerald-600 rounded-xl">
@@ -77,11 +79,11 @@ export default function RiskFactorAnalysis() {
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">Age <span className="text-red-500">*</span></label>
-              <input type="number" value={form.age} onChange={e => update('age', e.target.value)} className="input-field" placeholder="45" min="0" max="120" required />
+              <input data-ai-field={"age"} type="number" value={form.age} onChange={e => update('age', e.target.value)} className="input-field" placeholder="45" min="0" max="120" required />
             </div>
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">Gender <span className="text-red-500">*</span></label>
-              <select value={form.gender} onChange={e => update('gender', e.target.value)} className="input-field" required>
+              <select data-ai-field={"gender"} value={form.gender} onChange={e => update('gender', e.target.value)} className="input-field" required>
                 <option value="">Select...</option>
                 <option value="male">Male</option>
                 <option value="female">Female</option>
@@ -90,11 +92,11 @@ export default function RiskFactorAnalysis() {
             </div>
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">Patient ID</label>
-              <input type="text" value={form.patient_id} onChange={e => update('patient_id', e.target.value)} className="input-field" placeholder="Optional" />
+              <input data-ai-field={"patient_id"} type="text" value={form.patient_id} onChange={e => update('patient_id', e.target.value)} className="input-field" placeholder="Optional" />
             </div>
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">Smoking Status</label>
-              <select value={form.smoking} onChange={e => update('smoking', e.target.value)} className="input-field">
+              <select data-ai-field={"smoking"} value={form.smoking} onChange={e => update('smoking', e.target.value)} className="input-field">
                 <option value="">Select...</option>
                 <option value="never">Never smoker</option>
                 <option value="former">Former smoker</option>
@@ -104,11 +106,11 @@ export default function RiskFactorAnalysis() {
             </div>
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">BMI</label>
-              <input type="number" value={form.bmi} onChange={e => update('bmi', e.target.value)} className="input-field" placeholder="25.0" step="0.1" min="10" max="70" />
+              <input data-ai-field={"bmi"} type="number" value={form.bmi} onChange={e => update('bmi', e.target.value)} className="input-field" placeholder="25.0" step="0.1" min="10" max="70" />
             </div>
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">Alcohol Consumption</label>
-              <select value={form.alcohol} onChange={e => update('alcohol', e.target.value)} className="input-field">
+              <select data-ai-field={"alcohol"} value={form.alcohol} onChange={e => update('alcohol', e.target.value)} className="input-field">
                 <option value="">Select...</option>
                 <option value="none">None</option>
                 <option value="occasional">Occasional</option>
@@ -118,7 +120,7 @@ export default function RiskFactorAnalysis() {
             </div>
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">Exercise Level</label>
-              <select value={form.exercise} onChange={e => update('exercise', e.target.value)} className="input-field">
+              <select data-ai-field={"exercise"} value={form.exercise} onChange={e => update('exercise', e.target.value)} className="input-field">
                 <option value="">Select...</option>
                 <option value="sedentary">Sedentary</option>
                 <option value="light">Light (1-2x/week)</option>
@@ -128,7 +130,7 @@ export default function RiskFactorAnalysis() {
             </div>
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">Diet Quality</label>
-              <select value={form.diet} onChange={e => update('diet', e.target.value)} className="input-field">
+              <select data-ai-field={"diet"} value={form.diet} onChange={e => update('diet', e.target.value)} className="input-field">
                 <option value="">Select...</option>
                 <option value="poor">Poor</option>
                 <option value="fair">Fair</option>
@@ -138,7 +140,7 @@ export default function RiskFactorAnalysis() {
             </div>
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">Stress Level</label>
-              <select value={form.stress} onChange={e => update('stress', e.target.value)} className="input-field">
+              <select data-ai-field={"stress"} value={form.stress} onChange={e => update('stress', e.target.value)} className="input-field">
                 <option value="">Select...</option>
                 <option value="low">Low</option>
                 <option value="moderate">Moderate</option>
@@ -159,7 +161,7 @@ export default function RiskFactorAnalysis() {
             <div className="space-y-2">
               {form.family_history.map((h, i) => (
                 <div key={i} className="flex items-center gap-2">
-                  <input type="text" value={h} onChange={e => updateHistory(i, e.target.value)} className="input-field flex-1" placeholder="e.g., Heart disease, Diabetes..." />
+                  <input data-ai-field={"h"} type="text" value={h} onChange={e => updateHistory(i, e.target.value)} className="input-field flex-1" placeholder="e.g., Heart disease, Diabetes..." />
                   {form.family_history.length > 1 && (
                     <button type="button" onClick={() => removeHistory(i)} className="p-2 text-red-400 hover:text-red-600 rounded-lg">
                       <X className="h-4 w-4" />
@@ -284,6 +286,7 @@ export default function RiskFactorAnalysis() {
           )}
         </div>
       )}
-    </div>
+      {result && <FormattedAIReport response={result} title="Complete AI report" />}
+    </div></NativeAIControls>
   );
 }

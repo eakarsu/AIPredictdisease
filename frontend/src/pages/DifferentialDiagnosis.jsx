@@ -1,6 +1,8 @@
+import NativeAIControls from "../components/NativeAIControls.jsx";
 import React, { useState } from 'react';
 import { Stethoscope, Plus, X, AlertTriangle } from 'lucide-react';
 import api from '../services/api';
+import FormattedAIReport from '../components/FormattedAIReport';
 
 const dispositionColors = {
   discharge: 'bg-green-100 text-green-800',
@@ -61,7 +63,7 @@ export default function DifferentialDiagnosis() {
   const parsed = result?.parsed;
 
   return (
-    <div>
+    <NativeAIControls busy={loading} context="Predictdisease"><div>
       <div className="mb-6">
         <div className="flex items-center gap-3 mb-2">
           <div className="p-2 bg-gradient-to-br from-purple-500 to-violet-600 rounded-xl">
@@ -77,15 +79,15 @@ export default function DifferentialDiagnosis() {
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">Patient ID</label>
-              <input type="text" value={form.patient_id} onChange={e => setForm({ ...form, patient_id: e.target.value })} className="input-field" placeholder="Optional" />
+              <input data-ai-field={"patient_id"} type="text" value={form.patient_id} onChange={e => setForm({ ...form, patient_id: e.target.value })} className="input-field" placeholder="Optional" />
             </div>
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">Age</label>
-              <input type="number" value={form.age} onChange={e => setForm({ ...form, age: e.target.value })} className="input-field" placeholder="e.g., 55" />
+              <input data-ai-field={"age"} type="number" value={form.age} onChange={e => setForm({ ...form, age: e.target.value })} className="input-field" placeholder="e.g., 55" />
             </div>
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">Gender</label>
-              <select value={form.gender} onChange={e => setForm({ ...form, gender: e.target.value })} className="input-field">
+              <select data-ai-field={"gender"} value={form.gender} onChange={e => setForm({ ...form, gender: e.target.value })} className="input-field">
                 <option value="">Select...</option>
                 <option value="male">Male</option>
                 <option value="female">Female</option>
@@ -105,7 +107,7 @@ export default function DifferentialDiagnosis() {
             <div className="space-y-2">
               {symptoms.map((s, i) => (
                 <div key={i} className="flex items-center gap-2">
-                  <input type="text" value={s} onChange={e => updateSymptom(i, e.target.value)} className="input-field flex-1" placeholder={`Symptom ${i + 1}...`} />
+                  <input data-ai-field={"s"} type="text" value={s} onChange={e => updateSymptom(i, e.target.value)} className="input-field flex-1" placeholder={`Symptom ${i + 1}...`} />
                   {symptoms.length > 1 && (
                     <button type="button" onClick={() => removeSymptom(i)} className="p-2 text-red-400 hover:text-red-600 rounded-lg"><X className="h-4 w-4" /></button>
                   )}
@@ -117,12 +119,12 @@ export default function DifferentialDiagnosis() {
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">Vital Signs (JSON or text)</label>
-              <textarea value={vitalSigns} onChange={e => setVitalSigns(e.target.value)} className="input-field" rows={3}
+              <textarea data-ai-field={"vitalSigns"} value={vitalSigns} onChange={e => setVitalSigns(e.target.value)} className="input-field" rows={3}
                 placeholder='{"HR": 110, "BP": "90/60", "Temp": 39.2, "SpO2": 94}' />
             </div>
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">Lab Values (JSON or text)</label>
-              <textarea value={labValues} onChange={e => setLabValues(e.target.value)} className="input-field" rows={3}
+              <textarea data-ai-field={"labValues"} value={labValues} onChange={e => setLabValues(e.target.value)} className="input-field" rows={3}
                 placeholder='{"WBC": 14.5, "Hgb": 10.2, "CRP": 85, "Troponin": 0.08}' />
             </div>
           </div>
@@ -244,6 +246,7 @@ export default function DifferentialDiagnosis() {
           )}
         </div>
       )}
-    </div>
+      {result && <FormattedAIReport response={result} title="Complete AI report" />}
+    </div></NativeAIControls>
   );
 }

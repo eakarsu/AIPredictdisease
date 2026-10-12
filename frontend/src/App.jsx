@@ -1,3 +1,4 @@
+import AIReportLibrary from "./components/AIReportLibrary";
 import React from 'react';
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import Login from './pages/Login';
@@ -53,7 +54,7 @@ function ProtectedRoute({ children }) {
 
 export default function App() {
   return (
-    <BrowserRouter>
+    <><AIReportLibrary floating /><BrowserRouter>
       <Routes>
         <Route path="/codex/custom-viz" element={<ProtectedRoute><CodexCustomVizFeature /></ProtectedRoute>} />
         <Route path="/codex/operations" element={<ProtectedRoute><CodexOperationsFeature /></ProtectedRoute>} />
@@ -100,6 +101,6 @@ export default function App() {
           <Route path="/gap-no-webhooks-for-outbreak-alerts" element={<GapNoWebhooksForOutbreakAlertsPage />} />
           <Route path="/gap-no-integration-with-clinical-systems" element={<GapNoIntegrationWithClinicalSystemsPage />} />
         </Routes>
-    </BrowserRouter>
+    </BrowserRouter></>
   );
 }

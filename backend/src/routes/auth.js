@@ -10,6 +10,17 @@ if (JWT_SECRET.length < 32 || /replace|change|example|generate|secret-key-2024/i
   throw new Error('JWT_SECRET must be a non-placeholder value of at least 32 characters.');
 }
 
+router.get('/demo-credentials', (req, res) => {
+  if (process.env.NODE_ENV === 'production') return res.status(404).json({ error: 'Not found' });
+  const address = req.socket.remoteAddress;
+  if (!['127.0.0.1', '::1', '::ffff:127.0.0.1'].includes(address)) return res.status(403).json({ error: 'Demo login is available only in the local workspace.' });
+  const email = process.env.DEMO_EMAIL || process.env.PROVISION_ADMIN_EMAIL || process.env.DEFAULT_EMAIL;
+  const password = process.env.DEMO_PASSWORD || process.env.PROVISION_ADMIN_PASSWORD || process.env.DEFAULT_PASSWORD;
+  if (!email || !password) return res.status(503).json({ error: 'Demo credentials are not configured.' });
+  res.set('Cache-Control', 'no-store');
+  return res.json({ email, password });
+});
+
 router.post('/login', async (req, res) => {
   try {
     const { email, password } = req.body;

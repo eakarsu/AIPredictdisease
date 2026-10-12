@@ -59,6 +59,13 @@ const analysisTypes = [
   },
 ];
 
+const exampleScenarios = [
+  { label: 'Demo AI · Seasonal planning', disease: 'Influenza', region: 'North America', additionalContext: 'Hypothetical seasonal planning exercise: compare surveillance trends, vaccination coverage and school calendars; identify missing source data before drawing conclusions.', factors: 'Hypothetical planning factors: access to primary care, vaccination coverage and seasonal changes. Distinguish assumptions from recorded local evidence.', scenario: 'Hypothetical winter flu surge: prioritize essential supplies and staff capacity; explain the source data needed to justify an allocation.', timeframe: 'Last 6 months' },
+  { label: 'Demo AI · Regional review', disease: 'Dengue', region: 'Southeast Asia', additionalContext: 'Hypothetical regional review: consider rainfall, vector monitoring and travel patterns. Flag unavailable or outdated evidence.', factors: 'Hypothetical factors: rainfall, mosquito surveillance, population density and healthcare access. Do not treat this example as a verified outbreak.', scenario: 'Hypothetical rainy-season demand: compare supply constraints and facility capacity; retain human approval for any operational action.', timeframe: 'Last 12 months' },
+  { label: 'Demo AI · Sensitivity review', disease: 'Measles', region: 'West Africa', additionalContext: 'Hypothetical sensitivity exercise: discuss incomplete reporting, delayed observations and alternate assumptions; do not infer actual cases from this example.', factors: 'Hypothetical factors: reporting delays, immunization gaps and access barriers. Ask for verified records before recommending real interventions.', scenario: 'Hypothetical resource shortage: identify tradeoffs and missing inventory information; do not claim that supplies have been dispatched.', timeframe: 'Current quarter' },
+];
+const completeScenario = (type, index = 0) => Object.fromEntries(type.fields.map(field => [field.name, exampleScenarios[index][field.name]]));
+
 const colorClasses = {
   purple: { bg: 'bg-purple-50', border: 'border-purple-200', icon: 'bg-purple-100 text-purple-600', active: 'ring-purple-500 border-purple-400' },
   red: { bg: 'bg-red-50', border: 'border-red-200', icon: 'bg-red-100 text-red-600', active: 'ring-red-500 border-red-400' },
@@ -75,7 +82,7 @@ export default function AIAnalysis() {
 
   const handleTypeSelect = (type) => {
     setActiveType(type);
-    setFormData({});
+    setFormData(completeScenario(type));
     setResult(null);
     setError('');
   };
@@ -135,13 +142,18 @@ export default function AIAnalysis() {
       {activeType && (
         <div className="card p-6 mb-8">
           <h2 className="text-lg font-semibold text-gray-900 mb-4">{activeType.title} Parameters</h2>
+          <section className="mb-5 rounded-lg border border-purple-200 bg-purple-50 p-4" aria-label="Complete example inputs">
+            <strong>Fill every field, including optional inputs</strong>
+            <p className="text-sm text-gray-600 my-2">Fictional planning inputs for review. These buttons only fill the form; use Run AI Analysis to request a response.</p>
+            <div className="flex flex-wrap gap-2">{exampleScenarios.map((example, index) => <button key={example.label} type="button" disabled={loading} className="btn-secondary" onClick={() => { setFormData(completeScenario(activeType, index)); setResult(null); setError(''); }}>{example.label}</button>)}</div>
+          </section>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             {activeType.fields.map((field) => (
               <div key={field.name} className={field.type === 'textarea' ? 'md:col-span-2' : ''}>
                 <label className="block text-sm font-medium text-gray-700 mb-1">{field.label}</label>
                 {field.type === 'textarea' ? (
                   <textarea
-                    value={formData[field.name] || ''}
+                    value={formData[field.name] ?? ''}
                     onChange={(e) => setFormData({ ...formData, [field.name]: e.target.value })}
                     className="input-field"
                     placeholder={field.placeholder}
@@ -150,7 +162,7 @@ export default function AIAnalysis() {
                 ) : (
                   <input
                     type="text"
-                    value={formData[field.name] || ''}
+                    value={formData[field.name] ?? ''}
                     onChange={(e) => setFormData({ ...formData, [field.name]: e.target.value })}
                     className="input-field"
                     placeholder={field.placeholder}

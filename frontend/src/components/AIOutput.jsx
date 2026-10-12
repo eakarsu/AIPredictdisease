@@ -1,36 +1,6 @@
 import React from 'react';
-import { Brain, Clock, Database, Sparkles } from 'lucide-react';
-
-function parseMarkdown(text) {
-  if (!text) return '';
-
-  // Convert markdown to HTML
-  let html = text
-    // Headers
-    .replace(/^### (.*$)/gm, '<h3>$1</h3>')
-    .replace(/^## (.*$)/gm, '<h2>$1</h2>')
-    .replace(/^# (.*$)/gm, '<h1>$1</h1>')
-    // Bold and italic
-    .replace(/\*\*\*(.*?)\*\*\*/g, '<strong><em>$1</em></strong>')
-    .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
-    .replace(/\*(.*?)\*/g, '<em>$1</em>')
-    // Lists
-    .replace(/^\s*[-*]\s+(.*$)/gm, '<li>$1</li>')
-    .replace(/^\s*(\d+)\.\s+(.*$)/gm, '<li>$2</li>')
-    // Line breaks for paragraphs
-    .replace(/\n\n/g, '</p><p>')
-    .replace(/\n/g, '<br/>');
-
-  // Wrap list items
-  html = html.replace(/(<li>.*?<\/li>)/gs, (match) => {
-    if (!match.startsWith('<ul>')) {
-      return `<ul class="list-disc list-inside space-y-1 mb-3 text-gray-700">${match}</ul>`;
-    }
-    return match;
-  });
-
-  return `<p>${html}</p>`;
-}
+import { Brain, Sparkles, Database, Clock } from 'lucide-react';
+import FormattedAIReport from './FormattedAIReport';
 
 export default function AIOutput({ data, loading, type = 'prediction' }) {
   if (loading) {
@@ -48,7 +18,7 @@ export default function AIOutput({ data, loading, type = 'prediction' }) {
 
   if (!data) return null;
 
-  const content = data.prediction || data.analysis || data.optimization || data.trends;
+  const content = data.parsed || data.result_json || data.prediction || data.analysis || data.optimization || data.trends || data;
   const metadata = data.metadata;
 
   const typeConfig = {
@@ -82,7 +52,7 @@ export default function AIOutput({ data, loading, type = 'prediction' }) {
 
       {/* AI Response Content */}
       <div className="bg-white rounded-xl border border-gray-200 p-6">
-        <div className="ai-output prose max-w-none" dangerouslySetInnerHTML={{ __html: parseMarkdown(content) }} />
+        <FormattedAIReport response={content} title={config.label} />
       </div>
 
       {/* Metadata Footer */}

@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { History, TrendingUp, AlertCircle, BarChart2 } from 'lucide-react';
 import api from '../services/api';
+import FormattedAIReport from '../components/FormattedAIReport';
 
 const riskColors = {
   low: 'bg-green-100 text-green-800',
@@ -202,23 +203,8 @@ export default function ForecastHistory() {
                 </div>
               )}
 
-              {/* Structured JSON */}
-              {parsed && (
-                <div className="card p-4">
-                  <h3 className="text-sm font-semibold text-gray-700 mb-2">Structured Output</h3>
-                  <pre className="bg-gray-50 rounded-lg p-3 text-xs text-gray-700 overflow-auto max-h-48 font-mono">
-                    {JSON.stringify(parsed, null, 2)}
-                  </pre>
-                </div>
-              )}
+              <FormattedAIReport response={selected} title={endpointLabels[selected.endpoint] || 'Saved forecast'} />
 
-              {/* Raw text */}
-              <div className="card p-4">
-                <h3 className="text-sm font-semibold text-gray-700 mb-2">Full AI Response</h3>
-                <div className="bg-gray-50 rounded-lg p-4 text-sm text-gray-700 whitespace-pre-wrap max-h-72 overflow-auto leading-relaxed">
-                  {selected.result}
-                </div>
-              </div>
             </div>
           ) : (
             <div className="card p-12 flex flex-col items-center justify-center text-center text-gray-400">

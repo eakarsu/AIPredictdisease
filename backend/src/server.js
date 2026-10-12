@@ -1,3 +1,8 @@
+import { authenticateToken as aiWorkspaceDependency1 } from "./middleware/auth.js";
+import aiWorkspaceDependency2 from "./db.js";
+import aiWorkspaceDependency3 from "../aiWorkspaceAdapters.cjs";
+import aiWorkspaceDependency4 from "../aiWorkspace.cjs";
+import { readFileSync as readAIWorkspaceFile } from 'node:fs';
 import express from 'express';
 import cors from 'cors';
 import helmet from 'helmet';
@@ -177,6 +182,15 @@ app.get('/api/dashboard/stats', authenticateToken, async (req, res) => {
 
 let server;
 
+
+// Advisory AI reports only; native execution and approval routes stay unchanged.
+const aiWorkspaceSupport = aiWorkspaceDependency3;
+const aiWorkspaceFeatures = JSON.parse(readAIWorkspaceFile(new URL("../aiWorkspaceFeatures.json", import.meta.url), 'utf8'));
+const aiWorkspaceDatabase = aiWorkspaceDependency2;
+app.use('/api/report-workspace', aiWorkspaceDependency4.createAIWorkspaceRouter({
+  pool: aiWorkspaceDatabase, authenticateToken: aiWorkspaceDependency1,
+  aiRateLimiter: aiWorkspaceSupport.createWorkspaceLimiter(), features: aiWorkspaceFeatures,
+}));
 async function start() {
   try {
     if (process.env.ENABLE_LEGACY_SCHEMA_BOOTSTRAP === 'true') await initDatabase();

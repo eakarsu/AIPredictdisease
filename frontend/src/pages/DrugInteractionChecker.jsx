@@ -1,6 +1,8 @@
+import NativeAIControls from "../components/NativeAIControls.jsx";
 import React, { useState } from 'react';
 import { Pill, Plus, X, AlertTriangle, CheckCircle } from 'lucide-react';
 import api from '../services/api';
+import FormattedAIReport from '../components/FormattedAIReport';
 
 const severityColors = {
   contraindicated: { bg: 'bg-red-100', text: 'text-red-800', border: 'border-red-300', badge: 'bg-red-200 text-red-900' },
@@ -46,7 +48,7 @@ export default function DrugInteractionChecker() {
   const parsed = result?.parsed;
 
   return (
-    <div>
+    <NativeAIControls busy={loading} context="Predictdisease"><div>
       <div className="mb-6">
         <div className="flex items-center gap-3 mb-2">
           <div className="p-2 bg-gradient-to-br from-pink-500 to-rose-600 rounded-xl">
@@ -69,7 +71,7 @@ export default function DrugInteractionChecker() {
             <div className="space-y-2">
               {medications.map((m, i) => (
                 <div key={i} className="flex items-center gap-2">
-                  <input
+                  <input data-ai-field={"m"}
                     type="text"
                     value={m}
                     onChange={e => updateMed(i, e.target.value)}
@@ -185,6 +187,7 @@ export default function DrugInteractionChecker() {
           )}
         </div>
       )}
-    </div>
+      {result && <FormattedAIReport response={result} title="Complete AI report" />}
+    </div></NativeAIControls>
   );
 }

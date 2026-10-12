@@ -1,26 +1,25 @@
+import { useRef as useDemoLoginRef, useState as useDemoLoginState } from 'react';
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Shield, Mail, Lock, Zap } from 'lucide-react';
 import api from '../services/api';
 
 export default function Login() {
+  const demoLoginLock = useDemoLoginRef(false);
+  const [demoLoginBusy, setDemoLoginBusy] = useDemoLoginState(false);
+
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
 
-  const handleAutoFill = () => {
-    setEmail(import.meta.env.VITE_DEMO_EMAIL || '');
-    setPassword(import.meta.env.VITE_DEMO_PASSWORD || '');
-  };
-
-  const handleLogin = async (e) => {
+  const handleLogin = async (e, demoLoginCredentials) => {
     e.preventDefault();
     setError('');
     setLoading(true);
     try {
-      const { data } = await api.post('/auth/login', { email, password });
+      const { data } = await api.post('/auth/login', { email: (demoLoginCredentials?.email ?? email), password: (demoLoginCredentials?.password ?? password) });
       localStorage.setItem('token', data.token);
       localStorage.setItem('user', JSON.stringify(data.user));
       navigate('/');
@@ -56,7 +55,7 @@ export default function Login() {
           <h2 className="text-xl font-semibold text-gray-900 mb-6">Sign in to your account</h2>
 
           {error && (
-            <div className="mb-4 p-3 bg-danger-50 border border-danger-200 rounded-lg text-danger-700 text-sm">
+            <div role="alert" className="mb-4 p-3 bg-danger-50 border border-danger-200 rounded-lg text-danger-700 text-sm">
               {error}
             </div>
           )}
@@ -106,12 +105,29 @@ export default function Login() {
           </form>
 
           <div className="mt-4">
-            <button
-              onClick={handleAutoFill}
+            <button disabled={demoLoginBusy || loading}
+              onClick={async (event) => {
+                if (demoLoginLock.current || loading) return;
+                demoLoginLock.current = true;
+                setDemoLoginBusy(true);
+                setError('');
+                try {
+                  const { data: credentials } = await api.get('/auth/demo-credentials');
+                  if (!credentials?.email || !credentials?.password) throw new Error('Demo credentials are unavailable.');
+                  setEmail(credentials.email);
+                  setPassword(credentials.password);
+                  await handleLogin(event, credentials);
+                } catch (err) {
+                  setError(err.response?.data?.error || err.message || 'Demo login failed.');
+                } finally {
+                  demoLoginLock.current = false;
+                  setDemoLoginBusy(false);
+                }
+              }}
               className="w-full flex items-center justify-center gap-2 py-3 px-4 bg-gradient-to-r from-primary-50 to-blue-50 text-primary-700 rounded-lg hover:from-primary-100 hover:to-blue-100 transition-all border border-primary-200 font-medium"
             >
               <Zap className="h-4 w-4" />
-              Auto Fill Demo Credentials
+              Log In as Demo
             </button>
           </div>
         </div>
