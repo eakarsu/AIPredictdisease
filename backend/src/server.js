@@ -16,6 +16,7 @@ import aiRoutes from './routes/ai.js';
 import { createCrudRouter } from './routes/crud.js';
 import customViewsRouter from './routes/customViews.js';
 import governanceRouter from './governance/router.js';
+import createFeaturePackRouter from './routes/featurePack.js';
 import runtime from './governance/runtime.cjs';
 import provider from './governance/providerGate.cjs';
 
@@ -85,6 +86,7 @@ app.use('/api/facilities', authenticateToken, createCrudRouter('healthcare_facil
 ]));
 
 app.use('/api/ai', authenticateToken, aiRoutes);
+app.use('/api/feature-pack', authenticateToken, createFeaturePackRouter());
 
 // Custom Views (Risk Gauge + Family History Tree)
 app.use('/api/custom-views', authenticateToken, customViewsRouter);

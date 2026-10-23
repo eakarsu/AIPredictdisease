@@ -6,6 +6,7 @@ const LINKS = [
   { to: '/codex/custom-viz', label: 'Custom Viz', group: 'Insights' },
   { to: '/codex/operations', label: 'Operations', group: 'Insights' },
   { to: '/', label: 'Dashboard', group: 'Workspace' },
+  { to: '/feature-pack/tasks', label: 'Operations Tasks', group: 'Workspace' },
   { to: '/outbreaks', label: 'Outbreaks', group: 'Workspace' },
   { to: '/campaigns', label: 'Campaigns', group: 'Workspace' },
   { to: '/risks', label: 'Risks', group: 'Workspace' },

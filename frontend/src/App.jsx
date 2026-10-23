@@ -3,6 +3,7 @@ import React from 'react';
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import Login from './pages/Login';
 import Dashboard from './pages/Dashboard';
+import FeaturePackTasks from './pages/FeaturePackTasks';
 import FeaturePage from './pages/FeaturePage';
 import AIAnalysis from './pages/AIAnalysis';
 import ForecastHistory from './pages/ForecastHistory';
@@ -61,6 +62,7 @@ export default function App() {
 
         <Route path="/login" element={<Login />} />
         <Route path="/" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
+        <Route path="/feature-pack/tasks" element={<ProtectedRoute><FeaturePackTasks /></ProtectedRoute>} />
         <Route path="/outbreaks" element={<ProtectedRoute><FeaturePage feature="outbreaks" /></ProtectedRoute>} />
         <Route path="/campaigns" element={<ProtectedRoute><FeaturePage feature="campaigns" /></ProtectedRoute>} />
         <Route path="/risks" element={<ProtectedRoute><FeaturePage feature="risks" /></ProtectedRoute>} />
